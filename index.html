@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload</title>
+    <style>
+        /* Existing CSS styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Additional CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .form-container {
+            margin-bottom: 20px;
+        }
+        
+        .response-container {
+            margin-bottom: 20px;
+        }
+        
+        .image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .upload-button {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .upload-button:hover {
+            background-color: #45a049;
+        }
+        
+        .server-response {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .server-response h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .server-response table {
+            margin-bottom: 10px;
+        }
+        
+        .processed-image {
+            margin-top: 20px;
+        }
+        
+        .buttons-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .home-button,
+        .track-button {
+            background-color: #ff6f00;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .home-button:hover,
+        .track-button:hover {
+            background-color: #ff8f00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>File Upload</h2>
+    
+    <div class="form-container">
+        <form id="uploadForm">
+            <input type="file" id="fileInput" name="file" accept="image/*">
+            <button class="upload-button" type="submit">Upload</button>
+        </form>
+    </div>
+    
+    <div class="response-container">
+        <div class="server-response">
+            <h3>Server Response:</h3>
+            <table id="responseTable">
+                <thead>
+                    <tr>
+                        <th>Name of Food</th>
+                        <th>Confidence</th>
+                        <th>Area (pixels)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="image-container">
+        <div class="processed-image">
+            <h3>Processed Image:</h3>
+            <img id="processedImage" src="" alt="Processed Image">
+        </div>
+    </div>
+    
+    <div class="buttons-container">
+        <a href="#" class="home-button">Home</a>
+        <a href="#" class="track-button">Track</a>
+    </div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Please select a file!');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/detect/', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        
+        // Populate the response table
+        const tbody = document.getElementById('responseTable').querySelector('tbody');
+        tbody.innerHTML = '';
+        result.detections.forEach(detection => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${detection[0]}</td><td>${detection[1]}</td><td>${detection[2]}</td>`;
+            tbody.appendChild(row);
+        });
+        
+        // Display the processed image
+        document.getElementById('processedImage').src = 'data:image/png;base64,' + result.image;
+        
+    } catch (error) {
+        console.error('Error uploading file:', error);
+    }
+});
+</script>
+
+</body>
+</html>
